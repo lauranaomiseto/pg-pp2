@@ -1,4 +1,5 @@
 # PP2 
+Projetos elaborados para a disciplina de Processamento Gráfico. 
 ---
 ## *Raytracing*
 Esse projeto utiliza a biblioteca de raytracing gerada em [Ray Tracing in One Weekend](https://github.com/RayTracing/raytracing.github.io/) para renderizar cenas com objetos de materiais diversos.
