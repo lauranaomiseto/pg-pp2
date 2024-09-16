@@ -34,13 +34,15 @@ Esses objetos foram movimentados algumas vezes para baixo, para criar a animaÃ§Ã
 
 ```
 g++ main.cc -o programa
+```
+```
 ./programa > imagem.ppm
 ```
 
 ## WebGL
 
 ## Autores
-Amanda Akemi Perina Kouchi
-Laura Naomi Seto
-Raul Yoshiyuki Komai
-Thiago Massayuki Toyota
+* Amanda Akemi Perina Kouchi
+* Laura Naomi Seto
+* Raul Yoshiyuki Komai
+* Thiago Massayuki Toyota
