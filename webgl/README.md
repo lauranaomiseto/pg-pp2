@@ -6,7 +6,7 @@ Esse projeto utiliza WebGL para renderizar a cena e os objetos 3D.
 
 ### Ambiente de Execução
 Os arquivos-fonte são:
-- **main.htmml:** arquivo html contendo o canvas, em que é renderizado os objetos.
+- **main.html:** arquivo html contendo o canvas, em que é renderizado os objetos.
 - **webgl.css:** arquivo css contendo a estilização da página.
 - **webgl.js:** arquivo javascript contendo toda a lógica de renderização dos objetos, suas texturas e iluminação, camêra e cena.
 
@@ -21,10 +21,8 @@ Há também arquivos auxiliares com funções específicas para manipular cada o
 
 ### Objetos
 Os objetos estão armazenados no site webgl2fundamentals.org e são um moinho e um livro.
-
-O moinho é um objeto .obj com textura em um arquivo .mtl com coordenadas iniciais em, aproximadamente (0.441, -4.004, -0.008).
-O livro é um objeto obj que possui as coordenadas iniciais em, aproximadamente (0.441, -4.004, -0.008).
-
+O moinho é um objeto .obj com textura em um arquivo .mtl com coordenadas iniciais em, aproximadamente, (0.441, -4.004, -0.008).
+O livro é um objeto obj que possui as coordenadas iniciais em, aproximadamente, (0.441, -4.004, -0.008).
 
 ### Câmera
 Para visualizar os objetos, fez-se a câmera se enquadrar dentro das dimensões máximas e mínimas de todos os objetos que compõe a cena. Usa-se fov igual a 80 e, também, calcula-se o aspecto da cena, de maneira a sempre se ajustar à resolução da tela em que a renderização está acontecendo.
@@ -38,5 +36,4 @@ A luz da cena incide de frente aos objetos, na mesma direção da câmera.
 
 ### Execução do projeto
 O projeto utilizou a biblioteca TWGL e foi desenvolvido em JavaScript, HTML e CSS. Os shaders foram escritos em GL e SL.
-
-Para a execução do main.html, é necessário estar com o WAMPserver ligado, e com todos os arquivos-fonte na pasta "www", que se encontra no diretório de instalação do WAMPserver. Por fim, para executar o html é necessário abrir o navegador e entrar: "localhost/main.html".
+Para a execução do main.html, é necessário estar com o WAMPserver ligado, e com todos os arquivos-fonte na pasta "www", que se encontra no diretório de instalação do WAMPserver. Por fim, para executar o html é necessário abrir o navegador e acessar: "localhost/main.html".
