@@ -4,7 +4,7 @@ function carregarShader(txt) {
     ;
 }
 
-function getExtents(positions) {
+  function getExtents(positions) {
     const min = positions.slice(0, 3);
     const max = positions.slice(0, 3);
     for (let i = 3; i < positions.length; i += 3) {
@@ -30,6 +30,10 @@ function getExtents(positions) {
     });
   }
 
+  function degToRad(deg) {
+    return deg * Math.PI / 180;
+  }
+
 import { parseOBJ as parseOBJ_book } from './book/book.js';
 
 import { parseOBJ as parseOBJ_mill } from './mill/mill.js';
@@ -38,18 +42,19 @@ import { parseMTL as parseMTL_mill } from './mill/mill.js';
 import { makeIndexedIndicesFn as makeIndexedIndicesFn_mill } from './mill/mill.js';
 
 async function main() {
-  // Get A WebGL context
-  /** @type {HTMLCanvasElement} */
   const canvas = document.querySelector("#canvas");
   const gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
-
+    
+  // valores RGBA para preto -> nossa cena terá fundo preto
+  gl.clearColor(0,0, 0, 1); 
+  
   // Tell the twgl to match position with a_position etc..
   twgl.setAttributePrefix("a_");
   
-    // -- | -- | -- MILL -- | -- | --
+  // -- | -- | -- MILL -- | -- | --
   //Carrega-se e compila-se os shaders
   var vs_mill =  await carregarShader('./mill/vertex_shader_mill.vert');
   var fs_mill = await carregarShader('./mill/fragment_shader_mill.frag');
@@ -105,18 +110,6 @@ async function main() {
   };
 
   const parts_mill = mill.geometries.map(({material, data}) => {
-    // Because data is just named arrays like this
-    //
-    // {
-    //   position: [...],
-    //   texcoord: [...],
-    //   normal: [...],
-    // }
-    //
-    // and because those names match the attributes in our vertex
-    // shader we can pass it directly into `createBufferInfoFromArrays`
-    // from the article "less code more fun".
-
     if (data.color) {
       if (data.position.length === data.color.length) {
         // it's 3. The our helper library assumes 4 so we need
@@ -142,19 +135,12 @@ async function main() {
     };
   });
 
-  
+
   const extents_mill = getGeometriesExtents(mill.geometries);
   const range_mill = m4.subtractVectors(extents_mill.max, extents_mill.min);
-  // amount to move the object so its center is at the origin
-  /*const millOffset = m4.scaleVector(
-      m4.addVectors(
-        extents_mill.min,
-        m4.scaleVector(range_mill, 0.5)),
-      -1);*/
-  
       
-       // -- | -- | -- BOOK -- | -- | --
-      //Carrega-se e compila-se os shaders 
+  // -- | -- | -- BOOK -- | -- | --
+  //Carrega-se e compila-se os shaders 
   var vs_book =  await carregarShader('./book/vertex_shader_book.vert');
   var fs_book = await carregarShader('./book/fragment_shader_book.frag');
   const meshProgramInfo_book = twgl.createProgramInfo(gl, [vs_book, fs_book]);
@@ -164,20 +150,10 @@ async function main() {
   text = await response.text();
   const book = parseOBJ_book(text);
   
-  
+  //Como o livro é bem menor que o moinho, multiplicamos cada vértice por um valor para aumentar seu tamanho
+  const scaleFactor = 15.0;
   const parts_book = book.geometries.map(({data}) => {
-    // Because data is just named arrays like this
-    //
-    // {
-    //   position: [...],
-    //   texcoord: [...],
-    //   normal: [...],
-    // }
-    //
-    // and because those names match the attributes in our vertex
-    // shader we can pass it directly into `createBufferInfoFromArrays`
-    // from the article "less code more fun".
-
+    data.position = data.position.map(value => value * scaleFactor);
     if (data.color) {
       if (data.position.length === data.color.length) {
         // it's 3. The our helper library assumes 4 so we need
@@ -201,30 +177,17 @@ async function main() {
       vao_book,
     };
   });
-  
-     // function getExtents(positions) igual ao mill
-      
-     //function getGeometriesExtents igual ao mill
       
     const extents_book = getGeometriesExtents(book.geometries);
-    //const range_book = m4.subtractVectors(extents_book.max, extents_book.min);
-  // amount to move the object so its center is at the origin
-    /*const bookOffset = m4.scaleVector(
-      m4.addVectors(
-        extents_book.min,
-        m4.scaleVector(range_book, 0.5)),
-      -1);*/
+    const range_book = m4.subtractVectors(extents_book.max, extents_book.min);
       
+  // -- | -- | -- CAMERA -- | -- | --
       
-     // -- | -- | -- CAMERA -- | -- | -- 
-      
+  //Pegamos o mínimo e máximo entre os objetos, para conseguir uma cena que enquadre ambos.
   const min = extents_mill.min.map((m, i) => Math.min(m, extents_book.min[i]));
   const max = extents_mill.max.map((m, i) => Math.max(m, extents_book.max[i]));
   
   const range = m4.subtractVectors(max, min);
-  const center = m4.addVectors(min, m4.scaleVector(range, 0.5));
-  // amount to move the object so its center is at the origin
-   
   const bookOffset = m4.scaleVector(
       m4.addVectors(
         min,
@@ -237,11 +200,11 @@ async function main() {
         m4.scaleVector(range, 0.5)),
       -1);
       
-      const cameraTarget = center ;//[0, 0, 0];
+  const cameraTarget = [0, 0, 0];
   // figure out how far away to move the camera so we can likely
   // see the object.
   const radius = m4.length(range) * 1.2;
-  const cameraPosition = m4.addVectors(center, [
+  const cameraPosition = m4.addVectors(cameraTarget, [
     0,
     0,
     radius,
@@ -250,20 +213,18 @@ async function main() {
   // for the size of this object.
   const zNear = radius / 100;
   const zFar = radius * 3;
-
-  function degToRad(deg) {
-    return deg * Math.PI / 180;
-  }
-
+      
   // -- | -- | -- CENA -- | -- | --
-      function render(time) {
-    time *= 0.001;  // convert to seconds
-
+  function render(time) {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    time *= 0.0005;  // convert to seconds
+    let time_mill = time * 0.75;
+    let time_book = time * 4.00;
     twgl.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.enable(gl.DEPTH_TEST);
 
-    const fieldOfViewRadians = degToRad(60);
+    const fieldOfViewRadians = degToRad(80);
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
@@ -281,44 +242,57 @@ async function main() {
       u_viewWorldPosition: cameraPosition,
     };
 
+    //Renderizando o mill  
+    gl.useProgram(meshProgramInfo_mill.program);
+
+    // calls gl.uniform
+    twgl.setUniforms(meshProgramInfo_mill, sharedUniforms);
+
+    // compute the world matrix once since all parts
+    // are at the same space.
+    let u_world_mill = m4.identity();  
+    u_world_mill = m4.translate(u_world_mill, millOffset[0] +10 , millOffset[1] , millOffset[2]);
+    u_world_mill = m4.multiply(m4.yRotation(-time_mill), u_world_mill);
       
-   // Renderizar o windmill
-  gl.useProgram(meshProgramInfo_mill.program);
-  twgl.setUniforms(meshProgramInfo_mill, {
-    u_lightDirection: m4.normalize([-1, 3, 5]),
-    u_view: view,
-    u_projection: projection,
-  });
+    for (const {bufferInfo_mill, vao_mill, material} of parts_mill) {
+      // set the attributes for this part.
+      gl.bindVertexArray(vao_mill);
+      // calls gl.uniform
+      twgl.setUniforms(meshProgramInfo_mill, {
+        u_world: u_world_mill,
+      }, material);
+      // calls gl.drawArrays or gl.drawElements
+      twgl.drawBufferInfo(gl, bufferInfo_mill);
+    }
 
-  let u_world_mill = m4.yRotation(time);
-  u_world_mill = m4.translate(u_world_mill, ...millOffset);
+    //Renderizando o book
+    gl.useProgram(meshProgramInfo_book.program);
 
-  for (const { bufferInfo_mill, vao_mill, material } of parts_mill) {
-    gl.bindVertexArray(vao_mill);
-    twgl.setUniforms(meshProgramInfo_mill, { u_world: u_world_mill, ...material });
-    twgl.drawBufferInfo(gl, bufferInfo_mill);
-  }
+    // calls gl.uniform
+    twgl.setUniforms(meshProgramInfo_book, sharedUniforms);
 
-  // Renderizar o book
-  gl.useProgram(meshProgramInfo_book.program);
-  twgl.setUniforms(meshProgramInfo_book, {
-    u_lightDirection: m4.normalize([-1, 3, 5]),
-    u_view: view,
-    u_projection: projection,
-  });
-
-  let u_world_book = m4.yRotation(time);
-  u_world_book = m4.translate(u_world_book, ...bookOffset);
-
-  for (const { bufferInfo_book, vao_book, material } of parts_book) {
-    gl.bindVertexArray(vao_book);
-    twgl.setUniforms(meshProgramInfo_book, { u_world: u_world_book, ...material });
-    twgl.drawBufferInfo(gl, bufferInfo_book);
-  }
-          
-  //console.log('Book Offset:', bookOffset);
-  //console.log('Mill Offset:', millOffset);
-  requestAnimationFrame(render);
+    // compute the world matrix once since all parts
+    // are at the same space.
+    let u_world_book = m4.identity();
+    u_world_book = m4.translate(u_world_book, bookOffset[0] , bookOffset[1] + 5, bookOffset[2]);
+    //Aplicamos as rotações desse jeito pois na forma anterior (como m4.xRotation(time) não conseguimos agregar diferentes movimentos)
+    //Nessa nova forma, como estamos multiplicando as rotações na matriz, as rotações não sobreescrevem umas as outras, mas "somam-se"
+    u_world_book = m4.multiply(m4.xRotation(-time_book), u_world_book);
+    u_world_book = m4.multiply(m4.zRotation(-time_book), u_world_book);
+    u_world_book = m4.multiply(m4.yRotation(time_book), u_world_book);
+      
+    for (const {bufferInfo_book, vao_book, material} of parts_book) {
+      // set the attributes for this part.
+      gl.bindVertexArray(vao_book);
+      // calls gl.uniform
+      twgl.setUniforms(meshProgramInfo_book, {
+        u_world: u_world_book,
+        u_diffuse: material.u_diffuse,
+      });
+      // calls gl.drawArrays or gl.drawElements
+      twgl.drawBufferInfo(gl, bufferInfo_book);
+    }
+    requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
 }
