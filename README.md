@@ -95,7 +95,7 @@ Para renderizar o livro, desloca-se ele ao longo do eixo y, para que este fique 
 A luz da cena incide de frente aos objetos, na mesma direção da câmera. 
 
 ### Execução do projeto
-O projeto utilizou a biblioteca TWGL e foi desenvolvido em JavaScript, HTML e CSS. Os shaders foram escritos em GL e SL.
+O projeto utilizou a biblioteca TWGL e foi desenvolvido em JavaScript, HTML e CSS. Os shaders foram escritos em GLSL.
 Para a execução do main.html, é necessário estar com o WAMPserver ligado, e com todos os arquivos-fonte na pasta "www", que se encontra no diretório de instalação do WAMPserver. Por fim, para executar o html é necessário abrir o navegador e acessar: "localhost/main.html".
 
 ---
